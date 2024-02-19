@@ -28,3 +28,45 @@ is loaded, until when the page is "ready" -- the moment where there's no longer 
 
 The third metric we'll see will be payload size in Bytes for both HTML pages and API endpoints in JSON -- we'll use this to glean potential gains for network latency.
 
+=== Requests per Second
+
+First, we'll start the Next.js server after loading required environment variables and starting the PostgreSQL database:
+
+[source,bash]
+----
+npm run dev
+----
+
+In another shell, we can run `ab` to benchmark the root endpoint:
+
+[source,bash]
+----
+ab -n 1000 -c 100 http://127.0.0.1:3000/
+----
+
+This will start 100 concurrent connections with `127.0.0.1:3000`, and request the root `/` url 1000 times total. For this test, the mean requests per second is `126.32`.
+
+Let's do the same for an api endpoint:
+
+[source,bash]
+----
+ab -n 1000 -c 100 http://127.0.0.1:3000/api/item/1
+----
+
+The result of this benchmark shows a mean requests per second of `80.4`.
+
+=== Time to Load Data
+
+This has been difficult to gain complete quantitative data on, but the attempt I took was to first
+log the current time when the parent component renders, then to log the current time when each
+constituent child component has fetched its data -- the difference between the first and last logs would be the "loading time".
+
+In this baseline, the current average difference between these time points is about `800` milliseconds.
+
+=== Network Bandwidth
+
+The `/` route has a total payload of `17.27` kB, but the actual delivery is `6.72` kB. This is due to
+Next.js automatically using gZip as its compression algorithm.
+
+The `/api/item/1` route has a total payload of `1.78` kB, but transferred `2.03` kB -- the size actually
+_increased_ with compression.
