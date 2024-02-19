@@ -5,4 +5,4 @@ Cohort: MCSPB-2311
 
 Date: {docdate}
 
-Project: https://github.com:CombatClassifieds/Website
+Project: https://github.com/CombatClassifieds/Website
