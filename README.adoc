@@ -1,5 +1,8 @@
 = System Design Captstone
+:hide-uri-scheme:
 
-Cohort MCSPB 2311
+Cohort: MCSPB-2311
 
 Date: {docdate}
+
+Project: https://github.com:CombatClassifieds/Website
