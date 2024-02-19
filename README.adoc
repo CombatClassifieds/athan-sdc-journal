@@ -1,6 +1,5 @@
 = System Design Captstone
-:page-interpolate: true
 
 Cohort MCSPB 2311
 
-Date: #{Time.now.strftime('%a %-d %B %Y at %H:%M:%S %Z')}
+Date: {docdate}
