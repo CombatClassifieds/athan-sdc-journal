@@ -20,4 +20,11 @@ simple to support, is omitted from this report due to the inability to gain conc
 == Initial Metrics
 
 The first and easiest metric to gain would be the "requests per second" for a particular route of the Next.js server -- we chose to use the https://httpd.apache.org/docs/2.4/programs/ab.html[Apache Benchmark]
-tool, with varying numbers of concurrent requests, as seen in the charts below.
+tool, with varying numbers of concurrent requests. We will also use this tool to measure the efficiency of our database; where we'll query a "simple" API endpoint that conducts a particular query. Though
+benchmarking the database directly would be considered, we're only taking into consideration the binding from the HTTP server to the database, as this is how the application would be delivered.
+
+The second metric we'll see will be through https://developer.mozilla.org/en-US/docs/Web/API/Performance/now[monotonic time differentials in JavaScript] -- we'll measure the time it takes from when the page
+is loaded, until when the page is "ready" -- the moment where there's no longer any pending data requests.
+
+The third metric we'll see will be payload size in Bytes for both HTML pages and API endpoints in JSON -- we'll use this to glean potential gains for network latency.
+
