@@ -1,5 +1,6 @@
 = System Design Captstone
 :hide-uri-scheme:
+:toc: preamble
 
 Cohort: MCSPB-2311
 
@@ -7,18 +8,16 @@ Date: {docdate}
 
 Project: https://github.com/CombatClassifieds/Website
 
-== Description
-
 This report provides measured comparisons between different strategies approaching a higher performance implementation of the "Combat Classifieds" project - included in this document are the strategies used,
 explanations for the use of those strategies, and measured performance evidence the strategies provided to compare against the baseline implementation. Though this document tries to be precise and not
 entertain speculation, there are designated sections for potential effects of certain (hypothetical) decisions as well.
-
-:toc:
-
-== Preamble
 
 "Combat Classifieds" is a Next.js application with a PostgreSQL back-end. It uses https://node-postgres.com/[pg] as its database binding library, and React.js components which require API-fetched data do so
 through `useEffect()` and the fetch API. The baseline implementation does not use https://react.dev/reference/react/Suspense[`<Suspense>`], nor is there caching of database results. Furthermore, there is not
 any preparation for horizontal scaling, though the current benchmarking environment (my laptop) wouldn't give deterministic results of Kubernetes cluster benefits -- that initiative, while would be relatively
 simple to support, is omitted from this report due to the inability to gain conclusive results.
 
+== Initial Metrics
+
+The first and easiest metric to gain would be the "requests per second" for a particular route of the Next.js server -- we chose to use the https://httpd.apache.org/docs/2.4/programs/ab.html[Apache Benchmark]
+tool, with varying numbers of concurrent requests, as seen in the charts below.
