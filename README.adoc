@@ -55,7 +55,7 @@ ab -n 1000 -c 100 http://127.0.0.1:3000/api/item/1
 
 The result of this benchmark shows a mean requests per second of `80.4`.
 
-=== Time to Load Data
+=== Time to Load
 
 This has been difficult to gain complete quantitative data on, but the attempt I took was to first
 log the current time when the parent component renders, then to log the current time when each
@@ -68,5 +68,90 @@ In this baseline, the current average difference between these time points is ab
 The `/` route has a total payload of `17.27` kB, but the actual delivery is `6.72` kB. This is due to
 Next.js automatically using gZip as its compression algorithm.
 
-The `/api/item/1` route has a total payload of `1.78` kB, but transferred `2.03` kB -- the size actually
-_increased_ with compression.
+The `/api/items/1` route has a total payload of `1.78` kB, but transferred `2.03` kB -- the size
+actually _increased_ with compression.
+
+== Optimization 1 - Production Build
+
+The first and easiest thing you can do with any Next.js application would be to build it for production.
+Not only will this pre-compile all the routes that would normally be compiled on demand, but it also
+statically allocates as much data as it can to produce the fastest response times. To make a production
+build and start it, the following is run:
+
+[source,bash]
+----
+npm run build
+npm start
+----
+
+Let's compare the benchmarks:
+
+=== Requests per Second
+
+Running `ab` with the configuration above actually doesn't do it justice -- the total number of
+requests will be increased to 10,000, with 1,000 concurrent connections.
+
+`/`:: 1,257.11 req/sec (+ 995%)
+`/api/items/1`:: 182.5 req/sec (+ 227%)
+
+As you can see, simply running in production gives tremendous gains for Next.js. For pages that return
+static HTML (like `/`), the gains are nearly 10x. For endpoints still tied to external services, the
+gains aren't as drastic, but still significant.
+
+=== Time to Load
+
+The time to load all assets has decreased to about `600` milliseconds on average. Not nearly as drastic
+as the response time, but still somewhat significant.
+
+=== Network Bandwidth
+
+NOTE: The following are listed in "uncompressed / compressed" format.
+
+`/`:: 16.99kB / 4.97 kB (98% of baseline)
+`/api/items/1`:: unchanged
+
+
+== Optimization 2 - Local Cache
+
+The next optimization will memoize database query results for the `/api/items/x` endpoint, for every
+`x`, lasting about an hour. This is done through two a `Map`, keyed by the item's index, with two
+values -- the query result, and its expiration. The trade-off of doing a query is that now it will
+need to look inside the `Map` first, _and_ check to see if its expired, which should still be much
+faster than the PostgreSQL protocol overhead, even though its on the same machine.
+
+The only attempted test for this optimization is "Requests per Second", and the results do not
+implicate any performance gain:
+
+Development:: 86.2 req/sec
+Production:: 160.5 req/sec
+
+== Optimization 3 - Suspense
+
+React's https://react.dev/reference/react/Suspense[`<Suspense>`] is natively supported in Next.js --
+it allows you to develop asynchronous components, rather than ones that use `useEffect` to reassign
+`null` states, and the data is https://nextjs.org/docs/app/building-your-application/routing/loading-ui-and-streaming[hydrated]
+on the client. This is a very effective way of mitigating the client from having to perform HTTP calls,
+and makes load times much quicker, at the expense of the server's request-per-second threshold.
+
+=== Requests per Second
+
+`/`:: 1,243.16 req/sec (+ 995%)
+
+=== Time to Load
+
+The load time has decreased to about `300` milliseconds, 37% of the original latency.
+
+=== Network Bandwidth
+
+`/`:: 27.85 kB / 7.2 kB (102% of baseline)
+
+== Conclusion
+
+Though there are other opportunities for optimization, I chose to avoid them out of added complexity.
+The following concepts could have been explored:
+
+- Brotli compression
+- Alternative database implementations; TIDB, Cassandra, etc.
+- SQL `JOIN` statements
+
+Each of these would require more engineering, but are worth considering for future projects.
